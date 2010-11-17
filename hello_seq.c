@@ -105,7 +105,7 @@ static int de_seq_show(struct seq_file *s, void *v)
   seq_printf(s, "%8lu: 0x%lx, %08x%08x%08x%08x%08x, %d\n", 
                          offset, (unsigned long)virt, 
                          result[0],result[1],result[2],result[3],result[4],
-                         page->_count.counter);
+                         page_count(page));
   if(mapped == 1){
     kunmap(page);
   }
