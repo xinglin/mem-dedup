@@ -1,4 +1,4 @@
-obj-m += hello.o
+#obj-m += hello.o
 obj-m += hello_seq.o
 
 KVERSION = $(shell uname -r)
