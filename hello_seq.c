@@ -97,7 +97,7 @@ static int de_seq_show(struct seq_file *s, void *v)
   sg_set_page(&sg, page,PAGE_SIZE,0);
   desc.tfm = tfm;
   desc.flags = 0;
-  if( crypto_hash_digest(&desc, &sg, 1, (u8 *)result) ){
+  if( crypto_hash_digest(&desc, &sg, PAGE_SIZE, (u8 *)result) ){
     printk(KERN_ALERT "Fail to call digest function!");
     return 1;
   }
