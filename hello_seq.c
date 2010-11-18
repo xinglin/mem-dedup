@@ -110,10 +110,10 @@ static int de_seq_show(struct seq_file *s, void *v)
     return 1;
   }
   crypto_free_hash(tfm);  
-  seq_printf(s, "%8lu: 0x%lx, %08x%08x%08x%08x%08x, %d\n", 
+  seq_printf(s, "%8lu: 0x%lx, %08x%08x%08x%08x%08x, %d, %d\n", 
                          offset, (unsigned long)virt, 
                          result[0],result[1],result[2],result[3],result[4],
-                         page_count(page));
+                         page_count(page),PageActive(page));
   if(mapped == 1){
     kunmap(page);
   }
