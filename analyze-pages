@@ -82,18 +82,18 @@ printf "Allocated pages: $allocated_pages (%.02f%%)\n",
     ($allocated_pages * 100.0 / $total_pages);
 
 printf "Unique hashes: " . scalar(keys(%hashvals)) .
-    " (%02f%% of allocated pages)\n",
+    " (%.02f%% of allocated pages)\n",
     (scalar(keys(%hashvals)) * 100.0 / $allocated_pages);
 
 # List of duplicated hashes    
 my @duphashes = grep {$hashvals{$_} > 1} keys(%hashvals);
 
-# List of all pages that belong to a duplicated hash grou
-my @duppages = @hashvals{@duphashes};
+# Sum of all pages that belong to a duplicated hash grou
+my $duppages = reduce(sub {$a + $b} , 0,@hashvals{@duphashes});
 
-printf "Duplicated pages: " . scalar(@duppages) .
-    " (%02f%% of allocated pages)\n",
-    (scalar(@duppages) * 100.0 / $allocated_pages);
+printf "Duplicated pages: " . $duppages .
+    " (%.02f%% of allocated pages)\n",
+    ($duppages * 100.0 / $allocated_pages);
 
 my $totalhot = reduce( sub {$a + $b}, 0, values(%hotpages) );
 printf "Total hot pages: $totalhot (%.02f%% of allocated pages)\n",
@@ -101,7 +101,7 @@ printf "Total hot pages: $totalhot (%.02f%% of allocated pages)\n",
 
 my $hotdup = reduce( sub {$a + $b}, 0, @hotpages{@duphashes} );
 printf "Duplicated hot pages: $hotdup (%.02f%% of dup. pages)\n",
-    ($hotdup * 100.0 / scalar(@duppages));
+    ($hotdup * 100.0 / $duppages);
 
 foreach my $hash ((sort {$hashvals{$b} <=> $hashvals{$a}}
         keys %hashvals)[0..19]) {
