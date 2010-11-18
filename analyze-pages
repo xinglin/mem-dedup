@@ -1,0 +1,109 @@
+#!/usr/bin/perl -w
+#
+# analyze-pages - parse the output of /dev/pageinfo
+#
+
+use strict;
+use List::Util qw/reduce/;
+
+#
+# TODO: Need to support superpages
+#
+my $PAGE_SIZE = 4096;
+
+#
+# Open the right file - either given on the command line or stdin
+#
+if (@ARGV) {
+    if (@ARGV == 1) {
+        open FH, "<$ARGV[0]";
+    } else {
+        die "usage: $0 [filename]\n";
+    }
+} else {
+    # Read from stdin
+    open FH,"-";
+}
+
+#
+# Bookkeeping structures
+#
+my %hashvals;
+my %hotpages;
+my $total_pages;
+my $allocated_pages;
+
+#
+# Look through all pages
+#
+while (<FH>) {
+    # Note: This line will need to change whenever we change the output format
+    if (/^\s*(\d+): (0x[0-9a-f]+), ([0-9a-f]+), (\d+), (\d)$/) {
+        my ($page,$address,$hash,$users,$hot) = ($1,$2,$3,$4,$5);
+
+        $total_pages++;
+
+        #
+        # We only count most statistics for pages that are in-use, so skip out
+        # early if it's free
+        #
+        if ($users < 1) {
+            next;
+        }
+
+        $allocated_pages++;
+
+        #
+        # Build up a perl hash of the hash values seen for pages
+        #
+        if (!exists($hashvals{$hash})) {
+            $hashvals{$hash} = 1;
+            if ($hot) {
+                $hotpages{$hash} = 1;
+            } else {
+                $hotpages{$hash} = 0;
+            }
+        } else {
+            $hashvals{$hash}++;
+            if ($hot) { $hotpages{$hash}++; }
+        }
+
+    } else {
+        warn "Unsupported line\n";
+    }
+}
+
+#
+# Report statistics
+#
+print "Total pages: $total_pages (" . ($total_pages * $PAGE_SIZE / 1024) .
+      " kB)\n";
+printf "Allocated pages: $allocated_pages (%.02f%%)\n",
+    ($allocated_pages * 100.0 / $total_pages);
+
+printf "Unique hashes: " . scalar(keys(%hashvals)) .
+    " (%02f%% of allocated pages)\n",
+    (scalar(keys(%hashvals)) * 100.0 / $allocated_pages);
+
+# List of duplicated hashes    
+my @duphashes = grep {$hashvals{$_} > 1} keys(%hashvals);
+
+# List of all pages that belong to a duplicated hash grou
+my @duppages = @hashvals{@duphashes};
+
+printf "Duplicated pages: " . scalar(@duppages) .
+    " (%02f%% of allocated pages)\n",
+    (scalar(@duppages) * 100.0 / $allocated_pages);
+
+my $totalhot = reduce( sub {$a + $b}, 0, values(%hotpages) );
+printf "Total hot pages: $totalhot (%.02f%% of allocated pages)\n",
+    ($totalhot * 100.0 / $allocated_pages);
+
+my $hotdup = reduce( sub {$a + $b}, 0, @hotpages{@duphashes} );
+printf "Duplicated hot pages: $hotdup (%.02f%% of dup. pages)\n",
+    ($hotdup * 100.0 / scalar(@duppages));
+
+foreach my $hash ((sort {$hashvals{$b} <=> $hashvals{$a}}
+        keys %hashvals)[0..19]) {
+    print "$hashvals{$hash}\t$hash\n";
+}
