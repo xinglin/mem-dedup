@@ -76,6 +76,14 @@ static int de_seq_show(struct seq_file *s, void *v)
   if(debug == 1)
     printk(KERN_INFO "seq_show: %8lu\n", offset);
 
+#ifdef SKIP_UNUSED_PAGES
+  if (page_count(page) == 0) {
+      if (debug == 1)
+        printk(KERN_INFO "skipping page: %8lu\n", offset);
+      return 1;
+  }
+#endif
+
   if(virt == NULL){
     // page is in highmem and it is not mapped into kernel virtual mem.
     // map it manually.
