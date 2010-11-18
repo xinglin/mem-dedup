@@ -76,6 +76,14 @@ static int de_seq_show(struct seq_file *s, void *v)
   if(debug == 1)
     printk(KERN_INFO "seq_show: %8lu\n", offset);
 
+#ifdef SKIP_UNUSED_PAGES
+  if (page_count(page) == 0) {
+      if (debug == 1)
+        printk(KERN_INFO "skipping page: %8lu\n", offset);
+      return 1;
+  }
+#endif
+
   if(virt == NULL){
     // page is in highmem and it is not mapped into kernel virtual mem.
     // map it manually.
@@ -97,15 +105,15 @@ static int de_seq_show(struct seq_file *s, void *v)
   sg_set_page(&sg, page,PAGE_SIZE,0);
   desc.tfm = tfm;
   desc.flags = 0;
-  if( crypto_hash_digest(&desc, &sg, 1, (u8 *)result) ){
+  if( crypto_hash_digest(&desc, &sg, PAGE_SIZE, (u8 *)result) ){
     printk(KERN_ALERT "Fail to call digest function!");
     return 1;
   }
   crypto_free_hash(tfm);  
-  seq_printf(s, "%8lu: 0x%lx, %08x%08x%08x%08x%08x, %d\n", 
+  seq_printf(s, "%8lu: 0x%lx, %08x%08x%08x%08x%08x, %d, %d\n", 
                          offset, (unsigned long)virt, 
                          result[0],result[1],result[2],result[3],result[4],
-                         page->_count.counter);
+                         page_count(page),PageActive(page));
   if(mapped == 1){
     kunmap(page);
   }
