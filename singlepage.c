@@ -15,6 +15,7 @@ extern unsigned long max_mapnr;
 
 struct proc_dir_entry *proc_file = NULL;
 static unsigned long pageid = 0;
+char debug = 0;
 
 int procfile_read(char *buffer, char **start,
 	      off_t offset, int count, int *peof, void *dat)
@@ -22,8 +23,12 @@ int procfile_read(char *buffer, char **start,
   struct page *page = &mem_map[pageid];
   void *virt = page_address(page);
   char mapped = 0;
-  
+  int i = 0;
+  if(debug == 1)
+    printk(KERN_DEBUG "offset: %lu, count: %d\n", offset, count);
+
   if( offset >= PAGE_SIZE ){
+    printk(KERN_INFO "reach file end!\n");
     *peof = 1;
     return 0;
   }
@@ -36,14 +41,27 @@ int procfile_read(char *buffer, char **start,
     }
     mapped = 1;
   }
-  
-  count = (count < PAGE_SIZE-offset ? count: PAGE_SIZE-offset);
-  memcpy(buffer, (char *)virt+offset, count);
+ 
+  if( count > PAGE_SIZE - offset){
+    count = PAGE_SIZE -offset;
+    *peof = 1;
+  } 
+
+  if(debug == 1)
+    printk(KERN_DEBUG "offset: %lu, count: %d\n", offset, count);
+
+  i = 0;
+  while(i < count){
+    *(unsigned char*)(buffer+i) = *((unsigned char *)virt+offset+i);
+    printk("%02X", *((unsigned char *)buffer+i));
+    i++; 
+  }
   
   if( mapped == 1 ){
     kunmap(page);
   }
 
+  *start = count;
   return count;
 }
 
