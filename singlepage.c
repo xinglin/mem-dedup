@@ -61,7 +61,7 @@ int procfile_write(struct file *file, const char *buffer, unsigned long count,
   }
   pageid = simple_strtoul(page_id, NULL, 10); 
   if(pageid >= num_physpages){
-    printk(KERN_ALERT "pageid >= max pageid %d!\n" num_physpages);
+    printk(KERN_ALERT "pageid >= max pageid %lu!\n", num_physpages);
     return -EFAULT;
   }
   printk(KERN_INFO "page id is %lu!\n", pageid);
