@@ -1,7 +1,9 @@
 #
 # Modules and the files they are made from
 #
-MODULES = hello_seq
+PAGEINFO = pageinfo
+SINGLEPAGE = singlepage
+MODULES = $(PAGEINFO) $(SINGLEPAGE)
 CFILES = $(MODULES:=.c)
 OBJFILES = $(CFILES:.c=.o)
 KOFILES = $(OBJFILES:.o=.ko)
@@ -24,8 +26,16 @@ clean:
 #
 # Convience targets
 #
-install: $(KOFILES)
-	insmod $(KOFILES)
+
+# insmod can't be used to install multiple modules at once. So create 
+# this to install all modules at once.
+install: pageinfo_install singlepage_install
+
+pageinfo_install: $(PAGEINFO).ko
+	insmod $(PAGEINFO).ko
+
+singlepage_install: $(SINGLEPAGE).ko
+	insmod $(SINGLEPAGE).ko
 
 deinstall:
 	rmmod $(KOFILES)
