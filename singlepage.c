@@ -61,7 +61,7 @@ int procfile_read(char *buffer, char **start,
     kunmap(page);
   }
 
-  *start = count;
+  *(int *)start = count;
   return count;
 }
 

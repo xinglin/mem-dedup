@@ -71,8 +71,7 @@ static int de_seq_show(struct seq_file *s, void *v)
   struct scatterlist sg;
   struct crypto_hash *tfm;
   struct hash_desc desc;
-  unsigned int result[5];
-
+  unsigned char result[20];
   if(debug == 1)
     printk(KERN_INFO "seq_show: %8lu\n", offset);
 
@@ -99,21 +98,34 @@ static int de_seq_show(struct seq_file *s, void *v)
   tfm = crypto_alloc_hash("sha1", 0, CRYPTO_ALG_ASYNC);
   if( IS_ERR(tfm) ){
     printk(KERN_ALERT "Fail to allocate transformer object!");
-    return 1;
+    return -EFAULT;
   }
   sg_init_table(&sg, 1);
   sg_set_page(&sg, page,PAGE_SIZE,0);
   desc.tfm = tfm;
   desc.flags = 0;
+  if( crypto_hash_digestsize(tfm) > sizeof(result) ){
+    printk( "digest size(%u) > outputbuffer(%zu)\n", 
+             crypto_hash_digestsize(tfm), sizeof(result) );
+    return -EFAULT;
+  }
+
   if( crypto_hash_digest(&desc, &sg, PAGE_SIZE, (u8 *)result) ){
     printk(KERN_ALERT "Fail to call digest function!");
-    return 1;
+    return -EFAULT;
   }
   crypto_free_hash(tfm);  
-  seq_printf(s, "%8lu: 0x%lx, %08x%08x%08x%08x%08x, %d, %d\n", 
-                         offset, (unsigned long)virt, 
-                         result[0],result[1],result[2],result[3],result[4],
-                         page_count(page),PageActive(page));
+  seq_printf(s, "%8lu: 0x%lx, "
+                "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+                "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x,"
+                " %d, %d\n",
+                offset, (unsigned long)virt,
+                result[0],result[1],result[2],result[3],result[4],
+                result[5],result[6],result[7],result[8],result[9],
+                result[10],result[11],result[12],result[13],result[14],
+                result[15],result[16],result[17],result[18],result[19],
+                page_count(page), PageActive(page) );
+
   if(mapped == 1){
     kunmap(page);
   }
