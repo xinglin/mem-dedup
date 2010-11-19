@@ -37,7 +37,7 @@ int procfile_read(char *buffer, char **start,
     mapped = 1;
   }
   
-  count = (offset == 0 ? count: PAGE_SIZE-offset);
+  count = (count < PAGE_SIZE-offset ? count: PAGE_SIZE-offset);
   memcpy(buffer, (char *)virt+offset, count);
   
   if( mapped == 1 ){
