@@ -11,7 +11,7 @@ KOFILES = $(OBJFILES:.o=.ko)
 obj-m += $(OBJFILES)
 
 # If set, don't report pages that have no users.
-#EXTRA_CFLAGS=-DSKIP_UNUSED_PAGES
+EXTRA_CFLAGS=-DSKIP_UNUSED_PAGES
 
 # Make sure to set up dependencies between source and object files
 %.o: %.c
