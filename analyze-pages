@@ -115,6 +115,15 @@ my $duppages = reduce(sub {$a + $b} , 0,@hashvals{@duphashes});
 # Maximum number of pages we could free
 my $freeablepages = reduce(sub {$a + ($b-1)} , 0,@hashvals{@duphashes});
 
+# Get number of the most duplicated pages. In most cases, it is the zeroed page.
+my ($largest_key, $largest_val) = each %hashvals;
+while (my($key, $val) = each %hashvals) {
+	if($val > $largest_val) {
+		$largest_key = $key;
+		$largest_val = $val;
+	}
+}
+
 printf "Duplicated pages: " . $duppages .
     " (%.02f%% of allocated pages)\n",
     ($duppages * 100.0 / $allocated_pages);
@@ -122,6 +131,12 @@ printf "Duplicated pages: " . $duppages .
 printf "Freeable pages: " . $freeablepages .
     " (%.02f%% of allocated pages)\n",
     ($freeablepages * 100.0 / $allocated_pages);
+
+printf "Freeable and nonzeroed pages: %d " . 
+    " (%.02f%% of allocated pages)\n",
+	$freeablepages - $largest_val,
+    (($freeablepages-$largest_val) * 100.0 / $allocated_pages);
+	
 
 my $totalhot = reduce( sub {$a + $b}, 0, values(%hotpages) );
 printf "Total hot pages: $totalhot (%.02f%% of allocated pages)\n",
