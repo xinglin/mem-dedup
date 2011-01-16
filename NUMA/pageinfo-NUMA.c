@@ -99,16 +99,21 @@ de_seq_show(struct seq_file *s, void *v)
 	}
 #endif
 
+	/* for the current 64-bit machine, all physical memory can be 
+	   direct-mapped into kernel space, beginning at a constant offset. 
+	   So the kernel virtual address can never be 0. */
 	if (va == 0) {
 		printk(KERN_ALERT "This should not happen in 64-bit machine\n");
 		return 1;
 	}
 
+	/* check whether the physical memory is accessible to kernel or not. */
 	if( !(e820_any_mapped(pa, pa+PAGE_SIZE-1, E820_RAM) ||
 		e820_any_mapped(pa, pa+PAGE_SIZE-1, E820_RESERVED_KERN)) ){
 		printk(KERN_INFO "%8lu not usable\n", pfn);
 		return 1;
 	}
+
 	/* get hash of this page */
 	tfm = crypto_alloc_hash("sha1", 0, CRYPTO_ALG_ASYNC);
 	if (IS_ERR(tfm)) {
