@@ -1,0 +1,40 @@
+These files were originally designed for deduplication for main memory
+in Linux.
+
+pageinfo.c is used to calculate hash for each individual physical page
+while singlepage.c is used to export the content of a specified 
+physical page. Both of these files work in Linux i386.
+
+NUMA dir contains files for Linux x86_64.
+
+analyze-pages is a perl script to give some statistics, just as the most
+popular 20 hash values. 
+
+The linux-header files should be installed, which are required for most of kernel modules.
+
+=====
+Compile:
+	$ make
+Install:
+	$ sudo make install
+destall:
+	$ sudo make destall
+reinstall:
+	$ sudo reinstall
+
+=====
+Usage:
+	After you have installed these two kernel modules, you will see two file
+	entries in /proc. 
+
+	1. To know hash values for each physical page, run
+		$ cat /proc/pageinfo
+	2. To see statistics about hash values for the physical pages, run
+		$ cat /proc/pageinfo > perl analyze-pages
+	3. To see content of a specific physical page, run
+
+		$ echo physical_page_id > /proc/singlepage
+		$ cat -v /proc/singlepage
+
+	   You can also see the hex format of the content of this page, using 
+	   dmesg. 
